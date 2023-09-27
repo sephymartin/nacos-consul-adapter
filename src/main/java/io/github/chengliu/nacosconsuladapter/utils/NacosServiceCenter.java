@@ -1,45 +1,44 @@
 /**
- * The MIT License
- * Copyright © 2021 liu cheng
+ * The MIT License Copyright © 2021 liu cheng
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.chengliu.nacosconsuladapter.utils;
 
-import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
-import io.github.chengliu.nacosconsuladapter.listeners.ServiceChangeListener;
-import io.github.chengliu.nacosconsuladapter.model.Result;
-import com.alibaba.nacos.api.exception.NacosException;
-import com.alibaba.nacos.api.naming.listener.EventListener;
-import com.alibaba.nacos.client.naming.NacosNamingService;
-import lombok.extern.slf4j.Slf4j;
-import reactor.core.Disposable;
-import reactor.core.publisher.EmitterProcessor;
-import reactor.core.publisher.Flux;
-
-import javax.annotation.PreDestroy;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.StampedLock;
 import java.util.stream.Collectors;
+
+import javax.annotation.PreDestroy;
+
+import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
+import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.listener.EventListener;
+import com.alibaba.nacos.client.naming.NacosNamingService;
+
+import io.github.chengliu.nacosconsuladapter.listeners.ServiceChangeListener;
+import io.github.chengliu.nacosconsuladapter.model.Result;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.Disposable;
+import reactor.core.publisher.EmitterProcessor;
+import reactor.core.publisher.Flux;
 
 /**
  * @description:
@@ -56,7 +55,7 @@ public class NacosServiceCenter {
     private ReentrantLock writeServiceLock = new ReentrantLock();
     private NacosNamingService nacosNamingService;
     private NacosDiscoveryProperties nacosDiscoveryProperties;
-    //todo 定义一个listener,监听服务变更通知
+    // todo 定义一个listener,监听服务变更通知
     /**
      * 定义一个所有服务的变更版本记录
      */
@@ -70,8 +69,8 @@ public class NacosServiceCenter {
      */
     Disposable allChangeConsumer = null;
 
-
-    public NacosServiceCenter(NacosNamingService nacosNamingService, NacosDiscoveryProperties nacosDiscoveryProperties) {
+    public NacosServiceCenter(NacosNamingService nacosNamingService,
+        NacosDiscoveryProperties nacosDiscoveryProperties) {
         this.nacosNamingService = nacosNamingService;
         this.nacosDiscoveryProperties = nacosDiscoveryProperties;
     }
@@ -95,14 +94,14 @@ public class NacosServiceCenter {
         }
     }
 
-
-    //todo 这个方法应该启动的时候自动调用
+    // todo 这个方法应该启动的时候自动调用
     public void initSetNames(List<String> newServiceNameList) {
         log.debug("first set services’s name");
         services = new HashSet<>(newServiceNameList);
         subscribe(services);
-        //订阅热数据源实时修改数据
-        allChangeConsumer = emitterProcessor.subscribe(change -> log.debug("consume service change {}:{}.", change.getData(), change.getChangeIndex()));
+        // 订阅热数据源实时修改数据
+        allChangeConsumer = emitterProcessor
+            .subscribe(change -> log.debug("consume service change {}:{}.", change.getData(), change.getChangeIndex()));
     }
 
     /**
@@ -126,18 +125,18 @@ public class NacosServiceCenter {
             return;
         }
         try {
-            //加锁
+            // 加锁
             if (services.containsAll(newServiceNameList) && newServiceNameList.containsAll(services)) {
                 log.debug("服务未发生变化无需进行修改");
                 return;
             }
-            //订阅新增加的服务/取消订阅下线的服务
+            // 订阅新增加的服务/取消订阅下线的服务
             backServices = services;
             long stamp = stampedLock.writeLock();
             try {
                 log.debug("服务发生变化，修改缓存服务名称");
                 services = new HashSet<>(newServiceNameList);
-                //subscribe new service
+                // subscribe new service
                 subscribe(services.stream().filter(e -> !backServices.contains(e)).collect(Collectors.toSet()));
             } finally {
                 stampedLock.unlockWrite(stamp);
@@ -166,7 +165,8 @@ public class NacosServiceCenter {
      * @param serviceNames
      */
     private void subscribe(Set<String> serviceNames) {
-        serviceNames.stream().forEach(serviceName -> subscribe(serviceName, new ServiceChangeListener(serviceName, this)));
+        serviceNames.stream()
+            .forEach(serviceName -> subscribe(serviceName, new ServiceChangeListener(serviceName, this)));
     }
 
     private void subscribe(String serviceName, EventListener listener) {
