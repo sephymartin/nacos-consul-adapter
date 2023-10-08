@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -86,7 +87,10 @@ public class LongPollingRegistrationService implements RegistrationService, Appl
         return Mono.just(nacosServiceCenter.getServiceNames()).map(serviceSet -> {
             Map<String, List<Object>> result = new HashMap<>(serviceSet.size());
             for (String item : serviceSet) {
-                result.put(item, Collections.emptyList());
+                List<ServiceInstancesHealth> serviceInstances = getServiceInstance(item);
+                if (!serviceInstances.isEmpty()) {
+                    result.put(item, Collections.emptyList());
+                }
             }
             return result;
         }).map(data -> new Result<>(data, System.currentTimeMillis()));
@@ -138,24 +142,35 @@ public class LongPollingRegistrationService implements RegistrationService, Appl
     private List<ServiceInstancesHealth> getServiceInstance(String serviceName) {
         return namingService.selectInstances(serviceName, nacosDiscoveryProperties.getGroup(), true).stream()
             .map(instance -> {
+
+                Map<String, String> metadataMap = instance.getMetadata();
+                if (!metadataMap.containsKey(META_MGMT_PORT)) {
+                    return null;
+                }
+                metadataMap.put(NACOS_APPLICATION_NAME, serviceName);
+
                 ServiceInstancesHealth.Node node =
                     ServiceInstancesHealth.Node.builder().address(instance.getIp()).id(instance.getInstanceId())
                         // todo 数据中心
                         .dataCenter("dc1").build();
 
-                Map<String, String> metadataMap = instance.getMetadata();
-                metadataMap.put(NACOS_APPLICATION_NAME, serviceName);
-
                 ServiceInstancesHealth.Service service = ServiceInstancesHealth.Service.builder().service(serviceName)
                     .id(serviceName + "-" + instance.getPort()).port(instance.getPort()).meta(metadataMap).build();
                 return ServiceInstancesHealth.builder().node(node).service(service).build();
-            }).collect(Collectors.toList());
+            }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @SneakyThrows
     private List<ServiceInstancesHealthOld> getServiceInstanceOld(String serviceName) {
         return namingService.selectInstances(serviceName, nacosDiscoveryProperties.getGroup(), true).stream()
             .map(instance -> {
+
+                Map<String, String> metadataMap = instance.getMetadata();
+                if (!metadataMap.containsKey(META_MGMT_PORT)) {
+                    return null;
+                }
+                metadataMap.put(NACOS_APPLICATION_NAME, serviceName);
+
                 ServiceInstancesHealth.Node node =
                     ServiceInstancesHealth.Node.builder().address(instance.getIp()).id(instance.getInstanceId())
                         // todo 数据中心
@@ -163,7 +178,8 @@ public class LongPollingRegistrationService implements RegistrationService, Appl
                 ServiceInstancesHealth.Service service = ServiceInstancesHealth.Service.builder().service(serviceName)
                     .id(serviceName + "-" + instance.getPort()).port(instance.getPort()).build();
                 return ServiceInstancesHealth.builder().node(node).service(service).build();
-            }).map(serviceInstancesHealth -> new ServiceInstancesHealthOld(serviceInstancesHealth))
+            }).filter(Objects::nonNull)
+            .map(serviceInstancesHealth -> new ServiceInstancesHealthOld(serviceInstancesHealth))
             .collect(Collectors.toList());
     }
 

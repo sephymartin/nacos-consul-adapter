@@ -29,6 +29,8 @@ import reactor.core.publisher.Mono;
  */
 public interface RegistrationService {
 
+    String META_MGMT_PORT = "management.port";
+
     // Prometheus自定义标签
     String NACOS_APPLICATION_NAME = "nacos_application_name";
 
