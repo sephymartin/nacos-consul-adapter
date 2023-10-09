@@ -85,7 +85,7 @@ cd $PROJECT_DIR
 
 MVN_VERSION=1.0.0-SNAPSHOT
 
-JAR_FILE=$PROJECT_NAME.jar
+JAR_FILE=nacos-consul-adapter.jar
 
 cp -f $PROJECT_DIR/target/$JAR_FILE $CURRENT_DIR/app.jar
 
