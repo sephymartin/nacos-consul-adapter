@@ -91,4 +91,4 @@ cp -f $PROJECT_DIR/target/$JAR_FILE $CURRENT_DIR/app.jar
 
 cd $CURRENT_DIR
 
-docker build --build-arg JAR_FILE="app.jar" -t ${PROJECT_NAME}:${MVN_VERSION} .
+docker build --build-arg JAR_FILE="app.jar" -t nacos-consul-adapter:${MVN_VERSION} .
