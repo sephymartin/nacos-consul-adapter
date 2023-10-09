@@ -154,18 +154,22 @@
     <build>
         <finalName>nacos-consul-adapter</finalName>
             <plugins>
+
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <layers>
+                            <enabled>true</enabled>
+                        </layers>
+                    </configuration>
                     <executions>
                         <execution>
-                            <id>repackage</id>
+                            <!-- docker 多层构建支持 -->
                             <goals>
-                                <goal>repackage</goal>
+                                <!-- 构建支持 git 信息 -->
+                                <goal>build-info</goal>
                             </goals>
-                            <configuration>
-                                <skip>true</skip>
-                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
@@ -173,7 +177,6 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.1</version>
                     <configuration>
                         <attach>true</attach>
                     </configuration>
@@ -292,7 +295,6 @@
                     </executions>
                 </plugin>
             </plugins>
-
 
         </pluginManagement>
     </build>
