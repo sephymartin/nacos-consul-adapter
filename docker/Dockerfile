@@ -7,7 +7,8 @@ RUN java -Djarmode=layertools -jar app.jar extract && mkdir -p /data/tmp && mkdi
 
 FROM eclipse-temurin:8-jre
 
-ENV JAVA_OPTS="-server"
+ENV JAVA_OPTS="-server -Dspring.cloud.nacos.discovery.ip=${HOST_IP}"
+ENV HOST_IP=${HOST_IP}
 
 WORKDIR /app
 
@@ -21,7 +22,7 @@ COPY --from=stage-jar-builder --chown=nonroot:nonroot application/ ./
 ENV TZ="Asia/Shanghai"
 
 VOLUME ["/data", "/config", "/logs"]
-EXPOSE 8080
+EXPOSE 9080
 # https://blog.csdn.net/kingwinstar/article/details/112648368 平滑关机
 # https://spring.io/guides/topicals/spring-boot-docker/
 ENTRYPOINT ["/bin/sh", "-c", "exec java $JAVA_OPTS org.springframework.boot.loader.JarLauncher"]
