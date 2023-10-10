@@ -8,7 +8,6 @@ RUN java -Djarmode=layertools -jar app.jar extract && mkdir -p /data/tmp && mkdi
 FROM eclipse-temurin:8-jre
 
 ENV JAVA_OPTS="-server -Dspring.cloud.nacos.discovery.ip=${HOST_IP}"
-ENV HOST_IP=${HOST_IP}
 
 WORKDIR /app
 
