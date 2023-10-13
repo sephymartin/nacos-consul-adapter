@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -78,9 +77,6 @@ public class DirectRegistrationService implements RegistrationService {
         return reactiveDiscoveryClient.getInstances(serviceName).map(serviceInstance -> {
 
             Map<String, String> metadataMap = serviceInstance.getMetadata();
-            if (!metadataMap.containsKey(META_MGMT_PORT)) {
-                return null;
-            }
             metadataMap.put(NACOS_APPLICATION_NAME, serviceName);
 
             ServiceInstancesHealth.Node node = ServiceInstancesHealth.Node.builder().address(serviceInstance.getHost())
@@ -93,7 +89,8 @@ public class DirectRegistrationService implements RegistrationService {
                     .id(serviceInstance.getServiceId() + "-" + serviceInstance.getPort())
                     .port(serviceInstance.getPort()).meta(metadataMap).build();
             return ServiceInstancesHealth.builder().node(node).service(service).build();
-        }).filter(Objects::nonNull).collectList().map(data -> new Result<>(data, System.currentTimeMillis()));
+        }).filter(serviceInstancesHealth -> serviceInstancesHealth.getService().getMeta().containsKey(META_MGMT_PORT))
+            .collectList().map(data -> new Result<>(data, System.currentTimeMillis()));
     }
 
     @Override
@@ -102,9 +99,6 @@ public class DirectRegistrationService implements RegistrationService {
         return reactiveDiscoveryClient.getInstances(serviceName).map(serviceInstance -> {
 
             Map<String, String> metadataMap = serviceInstance.getMetadata();
-            if (!metadataMap.containsKey(META_MGMT_PORT)) {
-                return null;
-            }
             metadataMap.put(NACOS_APPLICATION_NAME, serviceName);
 
             ServiceInstancesHealth.Node node = ServiceInstancesHealth.Node.builder().address(serviceInstance.getHost())
@@ -116,8 +110,9 @@ public class DirectRegistrationService implements RegistrationService {
                     .id(serviceInstance.getServiceId() + "-" + serviceInstance.getPort())
                     .port(serviceInstance.getPort()).build();
             return ServiceInstancesHealth.builder().node(node).service(service).build();
-        }).filter(Objects::nonNull).map(serviceInstancesHealth -> new ServiceInstancesHealthOld(serviceInstancesHealth))
-            .collectList().map(data -> new Result<>(data, System.currentTimeMillis()));
+        }).filter(serviceInstancesHealth -> serviceInstancesHealth.getService().getMeta().containsKey(META_MGMT_PORT))
+            .map(serviceInstancesHealth -> new ServiceInstancesHealthOld(serviceInstancesHealth)).collectList()
+            .map(data -> new Result<>(data, System.currentTimeMillis()));
     }
 
 }

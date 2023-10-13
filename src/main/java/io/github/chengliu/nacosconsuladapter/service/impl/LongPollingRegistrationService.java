@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -144,9 +143,6 @@ public class LongPollingRegistrationService implements RegistrationService, Appl
             .map(instance -> {
 
                 Map<String, String> metadataMap = instance.getMetadata();
-                if (!metadataMap.containsKey(META_MGMT_PORT)) {
-                    return null;
-                }
                 metadataMap.put(NACOS_APPLICATION_NAME, serviceName);
 
                 ServiceInstancesHealth.Node node =
@@ -157,7 +153,9 @@ public class LongPollingRegistrationService implements RegistrationService, Appl
                 ServiceInstancesHealth.Service service = ServiceInstancesHealth.Service.builder().service(serviceName)
                     .id(serviceName + "-" + instance.getPort()).port(instance.getPort()).meta(metadataMap).build();
                 return ServiceInstancesHealth.builder().node(node).service(service).build();
-            }).filter(Objects::nonNull).collect(Collectors.toList());
+            })
+            .filter(serviceInstancesHealth -> serviceInstancesHealth.getService().getMeta().containsKey(META_MGMT_PORT))
+            .collect(Collectors.toList());
     }
 
     @SneakyThrows
@@ -166,9 +164,6 @@ public class LongPollingRegistrationService implements RegistrationService, Appl
             .map(instance -> {
 
                 Map<String, String> metadataMap = instance.getMetadata();
-                if (!metadataMap.containsKey(META_MGMT_PORT)) {
-                    return null;
-                }
                 metadataMap.put(NACOS_APPLICATION_NAME, serviceName);
 
                 ServiceInstancesHealth.Node node =
@@ -178,7 +173,8 @@ public class LongPollingRegistrationService implements RegistrationService, Appl
                 ServiceInstancesHealth.Service service = ServiceInstancesHealth.Service.builder().service(serviceName)
                     .id(serviceName + "-" + instance.getPort()).port(instance.getPort()).build();
                 return ServiceInstancesHealth.builder().node(node).service(service).build();
-            }).filter(Objects::nonNull)
+            })
+            .filter(serviceInstancesHealth -> serviceInstancesHealth.getService().getMeta().containsKey(META_MGMT_PORT))
             .map(serviceInstancesHealth -> new ServiceInstancesHealthOld(serviceInstancesHealth))
             .collect(Collectors.toList());
     }
