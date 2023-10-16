@@ -1,0 +1,27 @@
+management:
+  server:
+    port: 9080 # 找运维分配端口, 这个端口和提供 web 服务的端口隔离，ECS 安全组策略不允许外网访问
+  # health 显示详情
+  endpoint.health.show-details: "ALWAYS"
+  endpoints:
+    web:
+      exposure:
+        include: [ 'health', 'info', 'loggers', 'prometheus' ]
+
+spring:
+  application:
+    name: nacos-consul-adapter
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.3.80:8848,192.168.3.86:8848,192.168.3.88:8848
+
+logging:
+  level:
+    io:
+      github:
+        chengliu:
+          nacosconsuladapter: info
+
+nacos-consul-adapter:
+  mode: direct
