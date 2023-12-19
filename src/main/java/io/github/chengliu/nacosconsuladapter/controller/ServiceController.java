@@ -68,7 +68,7 @@ public class ServiceController {
     public Mono<ResponseEntity<Map<String, List<String>>>> getServiceNames(
         @RequestParam(name = QUERY_PARAM_WAIT, required = false) String wait,
         @RequestParam(name = QUERY_PARAM_INDEX, required = false) Long index) {
-        log.debug("receive request register service.");
+        log.info("请求注册中心服务器: wait:{},index:{}", wait, index);
         return registrationService.getServiceNames(getWaitMillis(wait), index).map(item -> createResponseEntity(item));
     }
 
@@ -85,7 +85,7 @@ public class ServiceController {
         @RequestParam(name = QUERY_PARAM_WAIT, required = false) String wait,
         @RequestParam(name = QUERY_PARAM_INDEX, required = false) Long index) {
         Assert.isTrue(appName != null, "service name can not be null");
-        log.debug("请求注册中心服务器：{}，wait:{},index:{}", appName, wait, index);
+        log.info("请求注册中心服务器: {}，wait:{},index:{}", appName, wait, index);
         return registrationService.getServiceInstancesHealth(appName, getWaitMillis(wait), index).map(item -> {
             return createResponseEntity(item);
         });
