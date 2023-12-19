@@ -61,8 +61,9 @@ public class DirectRegistrationService implements RegistrationService {
                         Map<String, String> metadata = serviceInstance.getMetadata();
                         if (metadata.containsKey(META_MGMT_PORT)) {
                             list.add(serviceInstance.getHost() + ":" + metadata.get(META_MGMT_PORT));
-                        }else {
-                            log.warn("{} 不包含 {} 端口管理信息", serviceInstance, META_MGMT_PORT);
+                        } else {
+                            log.warn("{}-{} 不包含 {} 端口管理信息", serviceInstance.getServiceId(),
+                                serviceInstance.getInstanceId(), META_MGMT_PORT);
                         }
                     }
                     if (!list.isEmpty()) {
