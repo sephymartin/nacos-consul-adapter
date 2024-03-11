@@ -1,0 +1,5 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: nacos1-test.qnvip.io:8848,nacos2-test.qnvip.io:8858,nacos3-test.qnvip.io:8868

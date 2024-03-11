@@ -1,14 +1,5 @@
 spring:
-  application:
-    name: nacos-consul-adapter
   cloud:
     nacos:
       discovery:
         server-addr: nacos1.qnvip.io:8868,nacos2.qnvip.io:8868,nacos3.qnvip.io:8868
-
-logging:
-  level:
-    io:
-      github:
-        chengliu:
-          nacosconsuladapter: info
